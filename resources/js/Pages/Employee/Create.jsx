@@ -1,37 +1,47 @@
 import { useForm } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';//สำหรับหน้าที่ต้องการการยืนยันตัวตน.
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 export default function Create({ departments }) {
-    const { data, setData, post, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
+        birth_date: '',
         first_name: '',
         last_name: '',
-        dept_no: '',  // เพิ่ม dept_no เพื่อเก็บค่าแผนก
         gender: '',
-        birth_date: '',    // เพิ่มฟิลด์วันเกิด
-        hire_date: '',     // เพิ่มฟิลด์วันที่เริ่มงาน
+        hire_date: '',
+        department: '',
+        photo:''
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('employee.store')); // ส่งข้อมูลไปยัง EmployeeController/store
+        
+        const formData = new FormData();
+        formData.append('first_name', data.first_name);
+        formData.append('last_name', data.last_name);
+        formData.append('gender', data.gender);
+        formData.append('hire_date', data.hire_date);
+        formData.append('birth_date', data.birth_date);
+        formData.append('department', data.department);
+        
+        if (data.photo) {
+            formData.append('photo', data.photo);
+        }
+    
+        post(route('employee.store'), {
+            data: formData,
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     };
+
 
     return (
        <AuthenticatedLayout>
             <form 
                 onSubmit={handleSubmit} 
                 className="max-w-lg mx-auto bg-white p-8 shadow-lg rounded-lg space-y-6"
-            >
-                {/* Birth Date */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Birth Date:</label>
-                    <input
-                        type="date"
-                        value={data.birth_date}
-                        onChange={(e) => setData('birth_date', e.target.value)}
-                        className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {errors.birth_date && <span className="text-red-500 text-sm">{errors.birth_date}</span>}
-                </div>
+            >   
+            <h1 className='text-4xl font-extrabold text-center mb-8 text-blue-800 tracking-wide'>Employee</h1>
 
                 {/* First Name */}
                 <div>
@@ -72,18 +82,6 @@ export default function Create({ departments }) {
                     {errors.gender && <span className="text-red-500 text-sm">{errors.gender}</span>}
                 </div>
 
-                {/* Hire Date */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Hire Date:</label>
-                    <input
-                        type="date"
-                        value={data.hire_date}
-                        onChange={(e) => setData('hire_date', e.target.value)}
-                        className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {errors.hire_date && <span className="text-red-500 text-sm">{errors.hire_date}</span>}
-                </div>
-
                 {/* Department */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Department:</label>
@@ -101,7 +99,42 @@ export default function Create({ departments }) {
                     </select>
                     {errors.dept_no && <span className="text-red-500 text-sm">{errors.dept_no}</span>}
                 </div>
+                {/* Hire Date */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Hire Date:</label>
+                    <input
+                        type="date"
+                        value={data.hire_date}
+                        onChange={(e) => setData('hire_date', e.target.value)}
+                        className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.hire_date && <span className="text-red-500 text-sm">{errors.hire_date}</span>}
+                </div>
 
+                {/* Birth Date */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Birth Date:</label>
+                    <input
+                        type="date"
+                        value={data.birth_date}
+                        onChange={(e) => setData('birth_date', e.target.value)}
+                        className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.birth_date && <span className="text-red-500 text-sm">{errors.birth_date}</span>}
+                </div>
+               
+                {/* Photo Upload */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Photo:</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setData('photo', e.target.files[0])}
+                        className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.photo && <span className="text-red-500 text-sm">{errors.photo}</span>}
+                </div>
+               
                 {/* Submit Button */}
                 <button 
                     type="submit" 

@@ -40,7 +40,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('employee.create')}
                                     active={route().current('employee.create')}
                                 >
-                                    Creaet Employees
+                                    Create Employees
                                 </NavLink>
                             </div>
                         </div>
