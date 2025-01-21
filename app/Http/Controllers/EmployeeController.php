@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia; 
-use Inertia\Response;
+use Illuminate\Support\Facades\Redirect;
 class EmployeeController extends Controller
 {
     /**
@@ -68,49 +68,52 @@ class EmployeeController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    // ตรวจสอบความถูกต้องของข้อมูล
-    $validated = $request->validate([
-        "birth_date" => "required|date",
-        "first_name" => "required|string|max:255",
-        "last_name"  => "required|string|max:255",
-        "gender"     => "required|in:M,F",  // ลบ comma ที่เกินออก
-        "hire_date"  => "required|date",
-        "photo"      => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048" // รองรับไฟล์รูป
-    ]);
-
-    // ใช้ Database Transaction เพื่อความปลอดภัย
-    DB::transaction(function () use ($validated, $request) { 
-        // หาค่า emp_no ล่าสุด
-        $latestEmpNo = DB::table('employees')->max('emp_no') ?? 0; 
-        $newEmpNo = $latestEmpNo + 1; // เพิ่มค่า emp_no ทีละ 1
-
-        Log::info("New Employee Number: " . $newEmpNo);
-
-        // ตรวจสอบว่ามีการอัปโหลดรูปหรือไม่
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('employee_photos', 'public'); 
-        } else {
-            $photoPath = null;
-        }
-
-        // เพิ่มข้อมูลลงในฐานข้อมูล
-        DB::table("employees")->insert([
-            "emp_no"     => $newEmpNo, 
-            "first_name" => $validated['first_name'],
-            "last_name"  => $validated['last_name'],
-            "gender"     => $validated['gender'],
-            "birth_date" => $validated['birth_date'],
-            "hire_date"  => $validated['hire_date'],
-            "photo"      => $photoPath  // เก็บ path ของรูปภาพ
+    {
+        // ตรวจสอบความถูกต้องของข้อมูล
+        $validated = $request->validate([
+            "birth_date" => "required|date",
+            "first_name" => "required|string|max:255",
+            "last_name"  => "required|string|max:255",
+            "gender"     => "required|in:M,F",
+            "hire_date"  => "required|date",
+            "photo"      => "nullable|image|mimes:jpeg,png,jpg,gif|max:2048"
         ]);
-    });
 
-    // ส่งข้อความตอบกลับเมื่อสำเร็จ
-    return response()->json(['message' => 'Employee created successfully']);
-}
-    
-    
+        try {
+            DB::transaction(function () use ($validated, $request) {
+                // ดึงค่า emp_no ล่าสุด
+                $latestEmpNo = DB::table('employees')->max('emp_no') ?? 0;
+                $newEmpNo = $latestEmpNo + 1;
+
+                // อัปโหลดรูปภาพถ้ามีการอัปโหลด
+                if ($request->hasFile('photo')) {
+                    $photoPath = $request->file('photo')->store('employees', 'public');
+                    $validated['photo'] = $photoPath;
+                }
+
+                // เพิ่มข้อมูลพนักงานลงในฐานข้อมูล
+                DB::table("employees")->insert([
+                    "emp_no"     => $newEmpNo,
+                    "first_name" => $validated['first_name'],
+                    "last_name"  => $validated['last_name'],
+                    "gender"     => $validated['gender'],
+                    "birth_date" => $validated['birth_date'],
+                    "hire_date"  => $validated['hire_date'],
+                    "photo"      => $validated['photo'] ?? null
+                ]);
+            });
+
+            return Redirect::route('employee.index')->with('success', 'Employee created successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Error creating employee: ' . $e->getMessage());
+
+            // ส่งกลับไปยังหน้าเดิมพร้อมแสดง error
+            return Redirect::back()->withErrors(['error' => 'An error occurred while creating employee. Please try again.'])
+                                ->withInput(); // คืนค่าข้อมูลที่กรอกไว้
+        }
+    }
+
 
     /**
      * Display the specified resource.

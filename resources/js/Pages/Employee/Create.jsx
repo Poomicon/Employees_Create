@@ -1,5 +1,7 @@
 import { useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+
 export default function Create({ departments }) {
     const { data, setData, post, processing, errors } = useForm({
         birth_date: '',
@@ -8,12 +10,16 @@ export default function Create({ departments }) {
         gender: '',
         hire_date: '',
         department: '',
-        photo:''
+        photo: ''
     });
+
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
+        // ส่งข้อมูลไปที่ Backend
         const formData = new FormData();
         formData.append('first_name', data.first_name);
         formData.append('last_name', data.last_name);
@@ -21,27 +27,36 @@ export default function Create({ departments }) {
         formData.append('hire_date', data.hire_date);
         formData.append('birth_date', data.birth_date);
         formData.append('department', data.department);
-        
+
         if (data.photo) {
             formData.append('photo', data.photo);
         }
-    
+
         post(route('employee.store'), {
             data: formData,
             headers: {
                 'Content-Type': 'multipart/form-data'
+            },
+            onSuccess: (response) => {
+                // ตั้งค่าข้อความ Success และทำให้มันหายไปหลังจาก 3 วินาที
+                setSuccessMessage('Employee created successfully!');
+                setTimeout(() => setSuccessMessage(null), 3000);
+            },
+            onError: (error) => {
+                // ตั้งค่าข้อความ Error และทำให้มันหายไปหลังจาก 3 วินาที
+                setErrorMessage('An error occurred while creating employee. Please try again.');
+                setTimeout(() => setErrorMessage(null), 3000);
             }
         });
     };
 
-
     return (
-       <AuthenticatedLayout>
+        <AuthenticatedLayout>
             <form 
                 onSubmit={handleSubmit} 
                 className="max-w-lg mx-auto bg-white p-8 shadow-lg rounded-lg space-y-6"
             >   
-            <h1 className='text-4xl font-extrabold text-center mb-8 text-blue-800 tracking-wide'>Employee</h1>
+                <h1 className='text-4xl font-extrabold text-center mb-8 text-blue-800 tracking-wide'>Employee</h1>
 
                 {/* First Name */}
                 <div>
@@ -86,8 +101,8 @@ export default function Create({ departments }) {
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Department:</label>
                     <select
-                        value={data.dept_no}
-                        onChange={(e) => setData('dept_no', e.target.value)}
+                        value={data.department}
+                        onChange={(e) => setData('department', e.target.value)}
                         className="mt-1 p-2 block w-full border rounded-lg focus:ring-blue-500 focus:border-blue-500"
                     >
                         <option value="">Select Department</option>
@@ -97,8 +112,9 @@ export default function Create({ departments }) {
                             </option>
                         ))}
                     </select>
-                    {errors.dept_no && <span className="text-red-500 text-sm">{errors.dept_no}</span>}
+                    {errors.department && <span className="text-red-500 text-sm">{errors.department}</span>}
                 </div>
+
                 {/* Hire Date */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Hire Date:</label>
@@ -122,7 +138,7 @@ export default function Create({ departments }) {
                     />
                     {errors.birth_date && <span className="text-red-500 text-sm">{errors.birth_date}</span>}
                 </div>
-               
+
                 {/* Photo Upload */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Photo:</label>
@@ -134,7 +150,19 @@ export default function Create({ departments }) {
                     />
                     {errors.photo && <span className="text-red-500 text-sm">{errors.photo}</span>}
                 </div>
-               
+
+                {/* Success/Error Messages */}
+                {successMessage && (
+                    <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
+                        {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                        {errorMessage}
+                    </div>
+                )}
+
                 {/* Submit Button */}
                 <button 
                     type="submit" 
