@@ -24,39 +24,43 @@ export default function Create({ departments }) {
     const handleSubmit = (e) => {
         e.preventDefault(); // ป้องกันการรีเฟรชหน้าเมื่อกด submit
 
-        // สร้าง FormData เพื่อส่งข้อมูลเป็น multipart/form-data
-        const formData = new FormData();
-        formData.append('first_name', data.first_name);
-        formData.append('last_name', data.last_name);
-        formData.append('gender', data.gender);
-        formData.append('hire_date', data.hire_date);
-        formData.append('birth_date', data.birth_date);
-        formData.append('department', data.department);
-
-        // ถ้ามีไฟล์รูปภาพ จะส่งไฟล์นั้นไปด้วย
-        if (data.photo) {
-            formData.append('photo', data.photo);
-        }
 
         // ส่งข้อมูลไปยัง route 'employee.store'
         post(route('employee.store'), {
-            data: formData,  // ส่งข้อมูลฟอร์มไปยังเซิร์ฟเวอร์
+            
+            
             headers: {
-                'Content-Type': 'multipart/form-data',  // กำหนดประเภทของข้อมูลเป็น multipart/form-data เพื่อรองรับไฟล์อัปโหลด
+                'Content-Type': 'multipart/form-data',  // กำหนดประเภทของข้อมูลเป็น multipart/form-data เพื่อรองรับการอัปโหลดไฟล์
             },
+            
             onSuccess: () => {
+                // แสดงกล่องข้อความแจ้งเตือนเมื่อสร้างพนักงานสำเร็จ
                 Swal.fire({
-                    icon: "success",
-                    title: "สำเร็จ!",
-                    text: "สร้างพนักงานสำเร็จ!",
+                    icon: "success",  // ไอคอนแสดงความสำเร็จ
+                    title: "สำเร็จ!",  // หัวข้อแจ้งเตือน
+                    text: "สร้างพนักงานสำเร็จ!",  // ข้อความแจ้งเตือน
+                    timer: 3000,  // ตั้งเวลาให้กล่องแจ้งเตือนปิดเองใน 3 วินาที
+                    showConfirmButton: false,  // ไม่ต้องแสดงปุ่ม OK
                 });
+            
+                // อัปเดตข้อความสำเร็จ
                 setSuccessMessage("Employee created successfully!");
+            
+                // ล้างข้อความหลังจาก 3 วินาที
+                setTimeout(() => {
+                    setSuccessMessage('');
+                }, 3000);
             },
+        
             onError: () => {
-                setErrorMessage("An error occurred while creating employee. Please try again.");
-                setTimeout(() => setErrorMessage(null), 3000);  // ลบข้อความแจ้งเตือนหลังจาก 3 วินาที
+                // อัปเดตข้อความข้อผิดพลาด
+                setErrorMessage("Error occurred while creating employee. Please try again.");
+        
+                // ซ่อนข้อความแจ้งเตือนอัตโนมัติหลังจาก 3 วินาที
+                setTimeout(() => setErrorMessage(null), 3000);
             }
         });
+        
     };
 
     return (

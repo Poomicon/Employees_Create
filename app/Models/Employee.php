@@ -9,7 +9,7 @@ class Employee extends Model
 {
     use HasFactory;
 
-    // กำหนดฟิลด์ที่สามารถกรอกข้อมูลได้ผ่านการสร้างหรืออัพเดต
+    // กำหนดฟิลด์ที่สามารถกรอกข้อมูลได้ผ่านการสร้าง
     protected $fillable = [
         'emp_no',
         'first_name',

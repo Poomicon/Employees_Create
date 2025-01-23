@@ -11,7 +11,8 @@ export default function Index({ employees, query }) {
     const [totalPages, setTotalPages] = useState(employees.last_page); // สำหรับเก็บจำนวนหน้าทั้งหมด
     const [isLoading, setIsLoading] = useState(false); // สำหรับจัดการสถานะการโหลดข้อมูล
     const [searchField, setSearchField] = useState('first_name'); // สำหรับเก็บฟิลด์ที่ใช้ในการค้นหา
-
+    const [selectedPhoto, setSelectedPhoto] = useState(null);
+    
     // ฟังก์ชันในการดึงข้อมูลพนักงานจากเซิร์ฟเวอร์โดยใช้พารามิเตอร์
     const fetchEmployees = (params) => {
         setIsLoading(true); // ตั้งสถานะโหลดข้อมูลเป็น true
@@ -89,7 +90,7 @@ export default function Index({ employees, query }) {
                             <thead className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-900 font-semibold">
                                 <tr>
                                     {/* หัวตารางที่สามารถคลิกเพื่อจัดเรียง */}
-                                    {['emp_no', 'first_name', 'last_name', 'gender', 'birthday','photo'].map((col) => (
+                                    {['emp_no'].map((col) => (
                                         <th
                                             key={col}
                                             onClick={() => handleSort(col)} // คลิกเพื่อจัดเรียง
@@ -101,6 +102,21 @@ export default function Index({ employees, query }) {
                                             )}
                                         </th>
                                     ))}
+                                     <th className="border border-gray-300 px-4 py-2">
+                                        First Name
+                                    </th>
+                                    <th className="border border-gray-300 px-4 py-2">
+                                        Last Name
+                                    </th>
+                                    <th className="border border-gray-300 px-4 py-2">
+                                        Gender
+                                    </th>
+                                    <th className="border border-gray-300 px-4 py-2">
+                                        Birth Date
+                                    </th>
+                                    <th className="border border-gray-300 px-4 py-2">
+                                        Photo
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -126,10 +142,11 @@ export default function Index({ employees, query }) {
                                                 <img 
                                                     src={`/storage/${employee.photo}`} 
                                                     alt="Employee" 
-                                                    className="w-16 h-16 object-cover rounded-full"
+                                                    className="w-16 h-16 object-cover rounded-full cursor-pointer hover:opacity-80 transition duration-300"
+                                                    onClick={() => setSelectedPhoto(employee.photo)} // เมื่อคลิก ให้ตั้งค่ารูปที่เลือก
                                                 />
                                             ) : (
-                                                'No Image' // แสดงข้อความเมื่อไม่มีภาพ
+                                                'No Image'
                                             )}
                                         </td>
                                     </tr>
@@ -165,6 +182,24 @@ export default function Index({ employees, query }) {
                 <p className="text-center text-red-500 font-semibold mt-8">No data found</p> // แสดงข้อความเมื่อไม่มีข้อมูล
             )}
         </div>
+        {/* Modal สำหรับแสดงภาพขยาย */}
+        {selectedPhoto && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+                <div className="relative">
+                    <img 
+                        src={`/storage/${selectedPhoto}`} 
+                        alt="Employee"
+                        className="max-w-full max-h-screen object-contain rounded-lg"
+                    />
+                    <button 
+                        onClick={() => setSelectedPhoto(null)}
+                        className="absolute top-2 right-2 bg-red-500 text-white px-4 py-2 rounded-full"
+                    >
+                        X
+                    </button>
+                </div>
+            </div>
+        )}
         </AuthenticatedLayout>
     );
 }
